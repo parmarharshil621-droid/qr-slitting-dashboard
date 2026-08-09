@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slitting Job Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#172033}
+.header{height:64px;background:#073b82;color:white;display:flex;align-items:center;padding:0 18px;gap:18px;position:sticky;top:0;z-index:5}
+.menu{font-size:27px}.title{font-size:21px;font-weight:700;flex:1;text-align:center}.bell{font-size:22px}
+.wrap{max-width:1200px;margin:auto;padding:14px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 5px #0002}.metric{display:flex;align-items:center;gap:12px}.icon{font-size:28px}.label{font-size:13px;color:#555}.value{font-size:25px;font-weight:700}
+.controls{margin-top:12px;background:white;border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr 1fr 2fr auto;gap:8px;box-shadow:0 1px 5px #0002}
+select,input,button,textarea{font:inherit;border:1px solid #cbd5e1;border-radius:7px;padding:10px;background:white}button{cursor:pointer;border:0;font-weight:700}.search{background:#0866c5;color:#fff;padding:10px 20px}
+.panel{margin-top:12px;background:#fff;border-radius:12px;padding:12px;box-shadow:0 1px 5px #0002;overflow:hidden}.panel h2{margin:0 0 10px;color:#06408a;font-size:17px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}th{background:#092f62;color:#fff;font-size:12px;padding:10px;text-align:center}td{border:1px solid #ddd;padding:9px 7px;text-align:center;font-size:13px}tr:nth-child(even){background:#f8fafc}.machine{font-weight:700;color:#06408a}.wo{color:#06408a;font-weight:700}.badge{display:inline-block;padding:5px 10px;border-radius:15px;color:#fff;font-size:11px;font-weight:700}.running{background:#159447}.hold{background:#f3b817}.completed{background:#d92727}
+.legend{display:flex;gap:25px;margin-top:10px;font-size:12px}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.admin{display:none}.admin.active{display:block}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:4px}.actions{display:flex;gap:8px;margin-top:12px}.save{background:#159447;color:#fff}.update{background:#0866c5;color:#fff}.delete{background:#d92727;color:#fff}.clear{background:#e5e7eb}
+.admin-toggle{float:right;background:#eef5ff;color:#06408a;padding:7px 12px}.footer{text-align:center;font-size:12px;color:#555;padding:18px}
+@media(max-width:800px){.cards{grid-template-columns:1fr 1fr 1fr}.controls{grid-template-columns:1fr 1fr}.search{width:100%}.formgrid{grid-template-columns:1fr 1fr}.title{font-size:17px}}
+@media(max-width:520px){.wrap{padding:8px}.cards{gap:6px}.card{padding:9px}.icon{font-size:20px}.value{font-size:20px}.label{font-size:10px}.controls{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.header{height:56px}.panel{padding:9px}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="header"><span class="menu">☰</span><div class="title">SLITTING JOB DASHBOARD</div><span class="bell">🔔</span></header>
+
+<main class="wrap">
+<section class="cards" style="grid-template-columns:1fr 1fr">
+<div class="card"><div class="metric"><span class="icon">📋</span><div><div class="label">Running Jobs</div><div class="value" id="runningCount">0</div></div></div></div>
+<div class="card"><div class="metric"><span class="icon">📅</span><div><div class="label">Last Updated</div><div class="value" style="font-size:15px" id="updated">--</div></div></div></div>
+</section>
+
+<section class="controls">
+<select id="machineFilter"><option>All Machines</option><option>06 MANUAL</option><option>07 SDRI</option><option>07 ORION</option><option>08 GEORGE</option><option>12</option></select>
+<select id="statusFilter"><option>All Status</option><option>RUNNING</option><option>HOLD</option><option>COMPLETED</option></select>
+<select id="shiftFilter"><option>All Shifts</option><option>A</option><option>B</option><option>C</option></select>
+<input id="search" placeholder="🔍 Search WO No. / Coil / Grade...">
+<button class="search" onclick="render()">Search</button>
+</section>
+
+<section class="panel">
+<button class="admin-toggle" onclick="toggleAdmin()">🔐 Admin</button>
+<h2>CURRENT RUNNING JOBS</h2>
+<div class="table-wrap">
+<table><thead><tr><th>WO No.</th><th>Job</th><th>Grade</th><th>Mill</th><th>Weight (kg)</th><th>Status</th></tr></thead>
+<tbody id="jobBody"></tbody></table>
+</div>
+<div class="legend"><span><i class="dot running"></i>RUNNING – Job is in progress</span><span><i class="dot hold"></i>HOLD – Job on hold</span><span><i class="dot completed"></i>COMPLETED – Job completed</span></div>
+</section>
+
+
+
+<section class="panel" id="entryPage" style="display:none">
+<h2>📋 JOB ENTRY</h2>
+<div class="formgrid">
+<div class="field"><label>Machine *</label><select id="eMachine"><option>06 MANUAL</option><option>07 SDRI</option><option>07 ORION</option><option>08 GEORGE</option><option>12</option></select></div>
+<div class="field"><label>Work Order No. *</label><input id="eWO" placeholder="WO-1254"></div>
+<div class="field"><label>Job *</label><input id="eJob" placeholder="Job name / description"></div>
+<div class="field"><label>Coil List *</label><textarea id="eCoil" rows="2" placeholder="C001, C002, C003"></textarea></div>
+<div class="field"><label>Grade *</label><input id="eGrade" placeholder="CRGO 0.27"></div>
+<div class="field"><label>Mill *</label><input id="eMill" placeholder="Mill-1"></div>
+<div class="field"><label>Weight *</label><input id="eWeight" type="text" placeholder="1450 kg"></div>
+<div class="field"><label>Status *</label><select id="eStatus"><option>RUNNING</option><option>HOLD</option><option>COMPLETED</option></select></div>
+</div>
+<div class="actions"><button class="save" onclick="saveEntry()">Save Job</button><button class="clear" onclick="clearEntry()">Clear</button></div>
+</section>
+
+<section class="panel qr-panel">
+<h2>📷 COMMON QR CODE — JOB ENTRY</h2>
+<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+  <div id="commonQR" style="background:#fff;padding:10px;border:1px solid #ddd;border-radius:8px"></div>
+  <div>
+    <div style="font-weight:700;color:#06408a;font-size:16px">Scan this QR from any machine</div>
+    <div style="font-size:13px;color:#555;margin-top:5px">Operator will select the machine and enter the job details.</div>
+    <button onclick="printQR()" style="margin-top:10px;background:#073b82;color:#fff">🖨️ Print QR</button>
+  </div>
+</div>
+</section>
+
+<section class="panel admin" id="admin">
+<h2>🔐 ADMIN — ADD JOB</h2>
+<div id="loginBox">
+<div class="formgrid">
+<div class="field"><label>Email *</label><input id="loginEmail" type="email" placeholder="Admin email"></div>
+<div class="field"><label>Password *</label><input id="loginPassword" type="password" placeholder="Password"></div>
+</div>
+<div class="actions"><button class="search" onclick="adminLogin()">Login</button></div>
+<div id="loginMsg" style="margin-top:8px;font-size:13px"></div>
+</div>
+<div id="adminBox" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong id="adminUser"></strong><button class="clear" onclick="adminLogout()">Logout</button></div>
+<div class="formgrid">
+<div class="field"><label>Machine *</label><select id="fMachine"><option>06 MANUAL</option><option>06 SDRI</option><option>07 SDRI</option><option>07 ORION</option><option>08 GEORGE</option><option>12</option></select></div>
+<div class="field"><label>Work Order No. *</label><input id="fWO" placeholder="WO-1254"></div>
+<div class="field"><label>Job *</label><input id="fJob" placeholder="Job name / description"></div>
+<div class="field"><label>Coil List *</label><textarea id="fCoil" rows="2" placeholder="C001, C002, C003"></textarea></div>
+<div class="field"><label>Grade *</label><input id="fGrade" placeholder="CRGO 0.27"></div>
+<div class="field"><label>Mill *</label><input id="fMill" placeholder="Mill-1"></div>
+<div class="field"><label>Weight *</label><input id="fWeight" type="text" placeholder="1450 kg"></div>
+<div class="field"><label>Status *</label><select id="fStatus"><option>RUNNING</option><option>HOLD</option><option>COMPLETED</option></select></div>
+</div>
+<div class="actions"><button class="save" onclick="addJob()">Save Job</button><button class="clear" onclick="clearForm()">Clear</button></div>
+<div id="saveMsg" style="margin-top:8px;font-size:13px"></div>
+</div>
+</section>
+<div class="footer">© 2026 Slitting Dashboard | Amod Stamping Pvt. Ltd.</div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://sfnnwctbsggspnextbwu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_QWUkDFwzYfbdBE6i7vKjYA_pAEBAPmv';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let jobs = [];
+let isAdmin = false;
+
+function esc(v){return String(v ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function badge(s){return '<span class="badge '+String(s||'').toLowerCase()+'">'+esc(s)+'</span>'}
+function render(){
+ const m=document.getElementById('machineFilter').value,s=document.getElementById('statusFilter').value,sh=document.getElementById('shiftFilter').value,q=document.getElementById('search').value.toLowerCase();
+ const filtered=jobs.filter(j=>(m==='All Machines'||j.machine===m)&&(s==='All Status'||j.status===s)&&(sh==='All Shifts'||!j.shift||j.shift===sh)&&Object.values(j).join(' ').toLowerCase().includes(q));
+ document.getElementById('jobBody').innerHTML=filtered.map(j=>`<tr><td class="wo">${esc(j.wo)}</td><td>${esc(j.job)||'—'}</td><td>${esc(j.grade)}</td><td>${esc(j.mill)||'—'}</td><td>${esc(j.weight)}</td><td>${badge(j.status)}</td></tr>`).join('')||'<tr><td colspan="6">No jobs found</td></tr>';
+ document.getElementById('runningCount').textContent=jobs.filter(j=>j.status==='RUNNING').length;
+ document.getElementById('updated').textContent=new Date().toLocaleString();
+}
+
+async function loadJobs(){
+ const {data,error}=await db.from('jobs').select('*').order('created_at',{ascending:false});
+ if(error){console.error(error); document.getElementById('jobBody').innerHTML='<tr><td colspan="6">Database connection error</td></tr>'; return;}
+ jobs=data||[]; render();
+}
+
+function toggleAdmin(){document.getElementById('admin').classList.toggle('active')}
+
+async function adminLogin(){
+ const email=document.getElementById('loginEmail').value.trim();
+ const password=document.getElementById('loginPassword').value;
+ const msg=document.getElementById('loginMsg'); msg.textContent='Logging in...';
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){msg.textContent=error.message; return;}
+ isAdmin=true; showAdmin(data.user); msg.textContent='';
+}
+
+function showAdmin(user){
+ document.getElementById('loginBox').style.display='none';
+ document.getElementById('adminBox').style.display='block';
+ document.getElementById('adminUser').textContent='Logged in: '+(user.email||'Admin');
+}
+
+async function adminLogout(){await db.auth.signOut();isAdmin=false;document.getElementById('loginBox').style.display='block';document.getElementById('adminBox').style.display='none';}
+
+async function addJob(){
+ if(!isAdmin){alert('Please login as admin first');return;}
+ const j={machine:fMachine.value,wo:fWO.value.trim(),job:fJob.value.trim(),coil:fCoil.value.trim(),grade:fGrade.value.trim(),mill:fMill.value.trim(),weight:fWeight.value.trim(),status:fStatus.value};
+ if(!j.wo||!j.job||!j.coil||!j.grade||!j.mill||!j.weight){alert('Please fill all required fields');return}
+ const {error}=await db.from('jobs').insert(j);
+ if(error){document.getElementById('saveMsg').textContent=error.message;return;}
+ clearForm();document.getElementById('saveMsg').textContent='Job saved successfully';await loadJobs();
+}
+
+function clearForm(){['fWO','fJob','fCoil','fGrade','fMill','fWeight'].forEach(id=>document.getElementById(id).value='');}
+['machineFilter','statusFilter','shiftFilter'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+document.getElementById('search').addEventListener('input',render);
+
+function initCommonQR(){
+ const box=document.getElementById('commonQR'); if(!box||typeof QRCode==='undefined')return;
+ box.innerHTML=''; new QRCode(box,{text:location.href.split('?')[0],width:180,height:180});
+}
+function printQR(){
+ const url=location.href.split('?')[0]; const w=window.open('','_blank');
+ w.document.write('<html><head><title>Slitting Dashboard QR</title></head><body style="text-align:center;font-family:Arial;padding:30px"><h1>SLITTING JOB DASHBOARD</h1><div id="q"></div><p>Scan to view live dashboard</p><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>new QRCode(document.getElementById("q"),{text:'+JSON.stringify(url)+',width:300,height:300});setTimeout(()=>window.print(),500);<\/script></body></html>');
+ w.document.close();
+}
+
+// Live updates for everyone viewing the dashboard
+const channel=db.channel('jobs-live').on('postgres_changes',{event:'*',schema:'public',table:'jobs'},payload=>{loadJobs();});
+channel.subscribe();
+
+db.auth.getSession().then(({data})=>{if(data.session){isAdmin=true;showAdmin(data.session.user);}});
+loadJobs();
+initCommonQR();
+</script>
+
+</body>
+</html>

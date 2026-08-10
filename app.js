@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_KEY_HERE";
+const SUPABASE_ANON_KEY = "sb_publishable_QWUkDFwzYfbdBE6i7vKjYA_pAEBAPmv";
 
 const TABLE_NAME = "slitting_jobs";
 

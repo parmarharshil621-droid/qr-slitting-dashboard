@@ -24,7 +24,7 @@
             <h2>Running Jobs</h2>
             <p>Scan QR to view current running jobs.</p>
           </div>
-          <button id="adminLoginOpen" class="btn secondary">Admin Login</button>
+          <button id="adminLoginOpen" class="btn" onclick="document.getElementById('publicView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden');">
         </div>
         <div id="publicJobs" class="jobs-grid"></div>
         <p id="publicEmpty" class="empty hidden">No running jobs available.</p>

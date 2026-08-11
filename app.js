@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
+DOMContentLoaded SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_QWUkDFwzYfbdBE6i7vKjYA_pAEBAPmv";
 
 const TABLE_NAME = "slitting_jobs";
@@ -75,4 +75,19 @@ function displayJobs(jobs) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", startApp);
+document.addEventListener("DOMContentLoaded", document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.getElementById("adminLoginOpen");
+  const publicView = document.getElementById("publicView");
+  const loginView = document.getElementById("loginView");
+  const backBtn = document.getElementById("backPublic");
+
+  loginBtn.addEventListener("click", () => {
+    publicView.classList.add("hidden");
+    loginView.classList.remove("hidden");
+  });
+
+  backBtn.addEventListener("click", () => {
+    loginView.classList.add("hidden");
+    publicView.classList.remove("hidden");
+  });
+});startApp);

@@ -1,4 +1,4 @@
-DOMContentLoaded SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
+const SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_QWUkDFwzYfbdBE6i7vKjYA_pAEBAPmv";
 
 const TABLE_NAME = "slitting_jobs";
@@ -8,30 +8,23 @@ let supabaseClient = null;
 async function startApp() {
   try {
     if (!window.supabase) {
-      const script = document.createElement("script");
-
-      script.src =
-        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-
-      script.onload = loadJobs;
-      script.onerror = () => {
-        console.error("Supabase library load nahi hui.");
-      };
-
-      document.head.appendChild(script);
-    } else {
-      loadJobs();
+      console.error("Supabase library not loaded");
+      return;
     }
+
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    await loadJobs();
   } catch (error) {
-    console.error(error);
+    console.error("App Error:", error);
   }
 }
 
 async function loadJobs() {
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  if (!supabaseClient) return;
 
   const { data, error } = await supabaseClient
     .from(TABLE_NAME)
@@ -49,12 +42,10 @@ async function loadJobs() {
 function displayJobs(jobs) {
   const tableBody =
     document.getElementById("jobs-body") ||
-    document.getElementById("jobTableBody");
+    document.getElementById("jobTableBody") ||
+    document.getElementById("publicJobs");
 
-  if (!tableBody) {
-    console.log("Jobs table nahi mili.");
-    return;
-  }
+  if (!tableBody) return;
 
   tableBody.innerHTML = "";
 
@@ -75,19 +66,55 @@ function displayJobs(jobs) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
+
   const loginBtn = document.getElementById("adminLoginOpen");
   const publicView = document.getElementById("publicView");
   const loginView = document.getElementById("loginView");
-  const backBtn = document.getElementById("backPublic");
+  const backBtn = document.getElementById("backBtn");
+  const loginForm = document.getElementById("loginForm");
+  const loginMsg = document.getElementById("loginMsg");
+  const adminView = document.getElementById("adminView");
 
-  loginBtn.addEventListener("click", () => {
-    publicView.classList.add("hidden");
-    loginView.classList.remove("hidden");
-  });
+  if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+      publicView.classList.add("hidden");
+      loginView.classList.remove("hidden");
+    });
+  }
 
-  backBtn.addEventListener("click", () => {
-    loginView.classList.add("hidden");
-    publicView.classList.remove("hidden");
-  });
-});startApp);
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      loginView.classList.add("hidden");
+      publicView.classList.remove("hidden");
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (email === "admin@amod.com" && password === "123456") {
+
+        loginView.classList.add("hidden");
+        adminView.classList.remove("hidden");
+
+        if (loginMsg) {
+          loginMsg.textContent = "";
+        }
+
+      } else {
+
+        if (loginMsg) {
+          loginMsg.textContent = "Invalid email or password.";
+        }
+
+      }
+    });
+  }
+
+  startApp();
+});

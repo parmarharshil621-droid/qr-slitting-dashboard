@@ -1,3 +1,5 @@
+Corrected app.js
+
 const SUPABASE_URL = "https://sfnnwctbsggspnextbwu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_QWUkDFwzYfbdBE6i7vKjYA_pAEBAPmv";
 
@@ -25,11 +27,9 @@ async function startApp() {
 }
 
 async function loadJobs() {
-  if (!supabaseClient) return;
-
   const { data, error } = await supabaseClient
     .from(TABLE_NAME)
-    .select("*")
+    .select("id, machine, grade, mill, status")
     .order("id", { ascending: false });
 
   if (error) {
@@ -62,19 +62,14 @@ function displayJobs(jobs) {
 
     row.innerHTML = `
       <td>${job.machine ?? ""}</td>
-      <td>${job["job no"] ?? ""}</td>
       <td>${job.grade ?? ""}</td>
-      <td>${job.weight ?? ""}</td>
-      <td>${job.job ?? ""}</td>
-      <td>${job.status ?? ""}</td>
       <td>${job.mill ?? ""}</td>
-      <td>${job["start time"] ?? ""}</td>
+      <td>${job.status ?? ""}</td>
     `;
 
     tableBody.appendChild(row);
   });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -86,38 +81,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginMsg = document.getElementById("loginMsg");
   const adminView = document.getElementById("adminView");
 
-
   if (loginBtn) {
     loginBtn.addEventListener("click", () => {
-
       publicView.classList.add("hidden");
       loginView.classList.remove("hidden");
-
     });
   }
-
 
   if (backBtn) {
     backBtn.addEventListener("click", () => {
-
       loginView.classList.add("hidden");
       publicView.classList.remove("hidden");
-
     });
   }
-
 
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
 
       e.preventDefault();
 
-      const email =
-        document.getElementById("email").value.trim();
-
-      const password =
-        document.getElementById("password").value;
-
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
       if (
         email === "admin@amod.com" &&
@@ -134,17 +118,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
 
         if (loginMsg) {
-          loginMsg.textContent =
-            "Invalid email or password.";
-
+          loginMsg.textContent = "Invalid email or password.";
         }
 
       }
-
     });
   }
 
-
   startApp();
-
 });

@@ -1,103 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slitting Running Job Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="app">
-    <header class="topbar">
-      <div>
-        <h1>Slitting Running Job Dashboard</h1>
-        <p>Amod Stamping Pvt. Ltd.</p>
-      </div>
-      <button id="logoutBtn" class="btn danger hidden">Logout</button>
-    </header>
-
-    <main>
-      <section id="publicView" class="view">
-        <div class="card hero">
-          <div>
-            <span class="badge">LIVE</span>
-            <h2>Running Jobs</h2>
-            <p>Scan QR to view current running jobs.</p>
-          </div>
-          <button id="adminLoginOpen" class="btn" onclick="document.getElementById('publicView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden');">
-        </div>
-        <div id="publicJobs" class="jobs-grid"></div>
-        <p id="publicEmpty" class="empty hidden">No running jobs available.</p>
-      </section>
-
-      <section id="loginView" class="view hidden">
-        <div class="card login-card">
-          <h2>Admin Login</h2>
-          <p>Only the authorized admin account can add or update jobs.</p>
-          <form id="loginForm">
-            <label>Email<input id="email" type="email" required></label>
-            <label>Password<input id="password" type="password" required></label>
-            <button class="btn primary" type="submit">Login</button>
-            <button class="btn secondary" id="backPublic" type="button">Back</button>
-            <p id="loginMsg" class="message"></p>
-          </form>
-        </div>
-      </section>
-
-      <section id="adminView" class="view hidden">
-        <div class="card">
-          <div class="section-head">
-            <div>
-              <h2>Admin Dashboard</h2>
-              <p>Add, edit, delete and change job status.</p>
-            </div>
-            <button id="newJobBtn" class="btn primary">+ New Job</button>
-          </div>
-          <div id="adminMsg" class="message"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Machine</th><th>WO</th><th>Job</th><th>Coil</th><th>Grade</th><th>Mill</th><th>Weight kg</th><th>Status</th><th>Actions</th></tr>
-              </thead>
-              <tbody id="adminJobs"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div id="jobModal" class="modal hidden">
-    <div class="modal-box">
-      <div class="section-head">
-        <h2 id="modalTitle">New Job</h2>
-        <button id="closeModal" class="icon-btn">×</button>
-      </div>
-      <form id="jobForm" class="form-grid">
-        <input type="hidden" id="jobId">
-        <label>Machine<input id="machine" required></label>
-        <label>WO No<input id="wo" required></label>
-        <label>Job<input id="job" required></label>
-        <label>Coil<input id="coil"></label>
-        <label>Grade<input id="grade"></label>
-        <label>Mill<input id="mill"></label>
-        <label>Weight (kg)<input id="weight" required></label>
-        <label>Status
-          <select id="status">
-            <option>Running</option>
-            <option>Hold</option>
-            <option>Completed</option>
-          </select>
-        </label>
-        <div class="form-actions">
-          <button class="btn primary" type="submit">Save</button>
-          <button class="btn secondary" id="cancelModal" type="button">Cancel</button>
-        </div>
-      </form>
+<section id="publicView" class="view">
+  <div class="card hero">
+    <div>
+      <span class="badge">LIVE</span>
+      <h2>Running Jobs</h2>
+      <p>Scan QR to view current running jobs.</p>
     </div>
+
+    <button id="adminLoginOpen" class="btn">
+      Admin Login
+    </button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+  <div id="publicJobs" class="jobs-grid"></div>
+
+  <p id="publicEmpty" class="empty hidden">
+    No running jobs available.
+  </p>
+</section>
